@@ -16,13 +16,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Run python scrape
+        run: python3 scrape.py
 
-      - name: Run scrape script
-        run: python scrape.py
-
-      - name: Commit generated json
+      - name: Commit and push
         run: |
-          git config --global user.name "github‑actions[bot]"
-          git config --global user.email "github‑actions[bot]@users.noreply.github.com"
-          git add list.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "auto update list.json" && git push)
+            git config --global user.name "github‑actions[bot]"
+            git config --global user.email "github‑actions[bot]@users.noreply.github.com"
+            git add list.json
+            git commit -m "auto update list.json" || echo "no changes"
+            git push
