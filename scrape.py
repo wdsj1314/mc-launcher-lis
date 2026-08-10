@@ -3,7 +3,7 @@ import json
 data = [
     {
         "name":"ZL2(ZalithLauncher)",
-        "homepage":"https://github.com/Andrew2169/ZalithLauncher",
+        "homepage":"https://zalithlauncher.cn",
         "type":"mobile"
     },
     {
