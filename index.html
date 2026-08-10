@@ -1,18 +1,41 @@
 <!DOCTYPE html>
-<html lang="zh‑CN">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF‑8">
-<meta name="viewport" content="width=device‑width, initial‑scale=1.0">
-<title>MC Java 安卓启动器汇总</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目列表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+body{padding:16px;background:#f5f7fa}
+.item{background:#fff;padding:14px;border-radius:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px #00000015}
+.info h3{font-size:16px;margin-bottom:4px}
+.info p{font-size:13px;color:#666}
+button{padding:8px 14px;background:#2563eb;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer}
+</style>
 </head>
 <body>
-<div class="container">
-  <h1>MC Java 安卓启动器汇总</h1>
-  <div id="loading">加载中...</div>
-  <div id="list" class="item‑wrap"></div>
-</div>
-<script src="app.js"></script>
+<div id="container"></div>
+
+<script src="./list.js"></script>
+<script>
+const container=document.getElementById("container");
+listData.forEach(item=>{
+  const div=document.createElement("div");
+  div.className="item";
+  div.innerHTML=`
+    <div class="info">
+      <h3>${item.name}</h3>
+      <p>${item.desc}</p>
+    </div>
+  `;
+  const btn=document.createElement("button");
+  btn.textContent="前往";
+  btn.onclick=()=>{
+    window.open(item.goUrl,"_blank");
+  }
+  div.appendChild(btn);
+  container.appendChild(div);
+})
+</script>
 </body>
 </html>
-
