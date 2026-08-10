@@ -27,6 +27,10 @@
             linear-gradient(160deg, #050616, var(--bg-dark));
             color: #fff;
             padding: 2rem 1rem;
+            /* 修复移动端滚动过快白块、渲染断层 */
+            -webkit-overflow-scrolling: touch;
+            transform: translateZ(0);
+            will-change: scroll-position;
         }
         .page-wrap {
             display: grid;
@@ -34,6 +38,7 @@
             gap: 2rem;
             max-width: 1400px;
             margin: 0 auto;
+            transform: translateZ(0);
         }
         /* PC侧边纵向标签栏 */
         .tab-sidebar {
@@ -46,6 +51,7 @@
             border: 1px solid color-mix(in srgb, var(--main) 25%, transparent);
             backdrop-filter: blur(25px) saturate(160%);
             -webkit-backdrop-filter: blur(25px) saturate(160%);
+            transform: translateZ(0);
         }
         .tab-item {
             position: relative;
@@ -55,7 +61,7 @@
             cursor: pointer;
             z-index: 2;
             font-size: 14px;
-            transition: color 0.25s ease;
+            transition: color 0.15s ease;
             color: rgba(255,255,255,0.7);
             overflow: hidden;
         }
@@ -67,7 +73,8 @@
             filter: blur(1px);
             pointer-events: none;
             z-index: 1;
-            transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: left,top,width,height;
         }
         .tab-active {
             color: #fff;
@@ -95,11 +102,12 @@
             border:1px solid color-mix(in srgb,var(--main) 20%,transparent);
             backdrop-filter: blur(25px) saturate(170%);
             -webkit-backdrop-filter: blur(25px) saturate(170%);
-            transition:0.3s ease;
+            transition:0.2s ease;
+            transform: translateZ(0);
         }
         .launch-card:hover {
             border-color: color-mix(in srgb,var(--main) 45%,transparent);
-            transform: translateY(-3px);
+            transform: translateY(-3px) translateZ(0);
             box-shadow: 0 12px 35px color-mix(in srgb,var(--main) 20%,transparent);
         }
         .card-name {
@@ -157,6 +165,7 @@
                 padding:10px;
                 margin-bottom:20px;
                 scrollbar-width:none;
+                -webkit-overflow-scrolling: touch;
             }
             .tab-sidebar::-webkit-scrollbar {
                 display:none;
@@ -225,9 +234,10 @@
             listDom.innerHTML = `<div class="empty-tip">暂无对应分类启动器</div>`;
             return;
         }
+        let htmlBuf = [];
         arr.forEach(item=>{
             let btn = item.goUrl ? `<a class="visit-btn" target="_blank" href="${item.goUrl}">前往下载</a>` : '<span style="color:rgba(255,255,255,0.35)">未提供链接</span>';
-            listDom.innerHTML += `
+            htmlBuf.push(`
                 <div class="launch-card">
                     <div class="card-name">${item.name}</div>
                     <div class="card-desc">${item.desc}</div>
@@ -236,8 +246,9 @@
                         ${btn}
                     </div>
                 </div>
-            `
+            `);
         })
+        listDom.innerHTML = htmlBuf.join('');
     }
 
     // tab点击切换+小球收缩位移舒展动效
@@ -259,7 +270,7 @@
                 ball.style.top = `${currRect.top-parent.top}px`;
                 ball.style.width = `${currRect.width}px`;
                 ball.style.height = `${currRect.height}px`;
-            },220)
+            },140)
             render(tab.dataset.filter);
         }
     })
