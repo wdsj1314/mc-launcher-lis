@@ -88,5 +88,5 @@ data = [
 ]
 
 js_text = "const listData = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n"
-with open("list.js", "w", encoding="utf‑8") as f:
+with open("list.js", "w", encoding="utf-8") as f:
     f.write(js_text)
