@@ -1,4 +1,4 @@
-const JSON_URL = "https://cdn.jsdelivr.net/gh/wdsj1314/mc‑launcher‑lis@main/list.json?t="+Date.now();
+const JSON_URL = "./list.json"
 
 async function loadData(){
   const domLoading = document.querySelector("#loading");
