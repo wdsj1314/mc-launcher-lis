@@ -10,7 +10,7 @@ data = [
     {
         "name": "FCL(FoldCraft Launcher)",
         "desc": "安卓Minecraft Java启动器",
-        "goUrl": "https://github.com/FCL-Team/FoldCraftLauncher",
+        "goUrl": "https://foldcraftlauncher.cn/",
         "type": "mobile"
     },
     {
