@@ -27,9 +27,6 @@
             linear-gradient(160deg, #050616, var(--bg-dark));
             color: #fff;
             padding: 2rem 1rem;
-            /* 修复移动端滚动过快白块、渲染断层 */
-            -webkit-overflow-scrolling: touch;
-            transform: translateZ(0);
             will-change: scroll-position;
         }
         .page-wrap {
@@ -38,7 +35,6 @@
             gap: 2rem;
             max-width: 1400px;
             margin: 0 auto;
-            transform: translateZ(0);
         }
         /* PC侧边纵向标签栏 */
         .tab-sidebar {
@@ -51,6 +47,7 @@
             border: 1px solid color-mix(in srgb, var(--main) 25%, transparent);
             backdrop-filter: blur(25px) saturate(160%);
             -webkit-backdrop-filter: blur(25px) saturate(160%);
+            will-change: transform;
             transform: translateZ(0);
         }
         .tab-item {
@@ -61,7 +58,7 @@
             cursor: pointer;
             z-index: 2;
             font-size: 14px;
-            transition: color 0.15s ease;
+            transition: color 0.25s ease;
             color: rgba(255,255,255,0.7);
             overflow: hidden;
         }
@@ -73,8 +70,9 @@
             filter: blur(1px);
             pointer-events: none;
             z-index: 1;
-            transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
             will-change: left,top,width,height;
+            transform: translateZ(0);
         }
         .tab-active {
             color: #fff;
@@ -102,7 +100,8 @@
             border:1px solid color-mix(in srgb,var(--main) 20%,transparent);
             backdrop-filter: blur(25px) saturate(170%);
             -webkit-backdrop-filter: blur(25px) saturate(170%);
-            transition:0.2s ease;
+            transition:0.3s ease;
+            will-change: transform,border-color;
             transform: translateZ(0);
         }
         .launch-card:hover {
@@ -165,7 +164,6 @@
                 padding:10px;
                 margin-bottom:20px;
                 scrollbar-width:none;
-                -webkit-overflow-scrolling: touch;
             }
             .tab-sidebar::-webkit-scrollbar {
                 display:none;
@@ -206,16 +204,29 @@
     const listDom = document.getElementById('cardList');
     const tabs = document.querySelectorAll('.tab-item');
     const ball = document.getElementById('aniBall');
+    const tabWrap = document.getElementById('tabWrap');
     let prevTab = tabs[0];
+    let scrollDebounceTimer = null;
+
+    //【修复】读取位置叠加容器横向滚动偏移，手机横向标签栏不再飘
+    function getRelativePos(el, parentEl) {
+        const elRect = el.getBoundingClientRect();
+        const pRect = parentEl.getBoundingClientRect();
+        return {
+            w: elRect.width,
+            h: elRect.height,
+            left: elRect.left - pRect.left + parentEl.scrollLeft,
+            top: elRect.top - pRect.top
+        }
+    }
 
     // 初始化激活小球位置
     function initBall(el) {
-        const rect = el.getBoundingClientRect();
-        const parentRect = el.parentElement.getBoundingClientRect();
-        ball.style.width = `${rect.width}px`;
-        ball.style.height = `${rect.height}px`;
-        ball.style.left = `${rect.left - parentRect.left}px`;
-        ball.style.top = `${rect.top - parentRect.top}px`;
+        const pos = getRelativePos(el, tabWrap);
+        ball.style.width = `${pos.w}px`;
+        ball.style.height = `${pos.h}px`;
+        ball.style.left = `${pos.left}px`;
+        ball.style.top = `${pos.top}px`;
     }
     initBall(prevTab);
 
@@ -234,10 +245,9 @@
             listDom.innerHTML = `<div class="empty-tip">暂无对应分类启动器</div>`;
             return;
         }
-        let htmlBuf = [];
         arr.forEach(item=>{
             let btn = item.goUrl ? `<a class="visit-btn" target="_blank" href="${item.goUrl}">前往下载</a>` : '<span style="color:rgba(255,255,255,0.35)">未提供链接</span>';
-            htmlBuf.push(`
+            listDom.innerHTML += `
                 <div class="launch-card">
                     <div class="card-name">${item.name}</div>
                     <div class="card-desc">${item.desc}</div>
@@ -246,38 +256,57 @@
                         ${btn}
                     </div>
                 </div>
-            `);
+            `
         })
-        listDom.innerHTML = htmlBuf.join('');
     }
 
-    // tab点击切换+小球收缩位移舒展动效
+    // tab点击切换+小球收缩位移舒展动效【修改延时80ms，解决pc点击慢】
     tabs.forEach(tab=>{
         tab.onclick = ()=>{
             tabs.forEach(t=>t.classList.remove('tab-active'));
             tab.classList.add('tab-active');
-            const currRect = tab.getBoundingClientRect();
-            const parent = tab.parentElement.getBoundingClientRect();
+            const pos = getRelativePos(tab, tabWrap);
             // 第一步：当前激活标签收缩为圆点
             ball.style.width = '12px';
             ball.style.height = '12px';
-            ball.style.left = `${currRect.left-parent.left + currRect.width/2 -6}px`;
-            ball.style.top = `${currRect.top-parent.top + currRect.height/2 -6}px`;
+            ball.style.left = `${pos.left + pos.w/2 -6}px`;
+            ball.style.top = `${pos.top + pos.h/2 -6}px`;
 
             setTimeout(()=>{
                 // 第二步：小球位移到新标签位置，舒展填满
-                ball.style.left = `${currRect.left-parent.left}px`;
-                ball.style.top = `${currRect.top-parent.top}px`;
-                ball.style.width = `${currRect.width}px`;
-                ball.style.height = `${currRect.height}px`;
-            },140)
+                ball.style.left = `${pos.left}px`;
+                ball.style.top = `${pos.top}px`;
+                ball.style.width = `${pos.w}px`;
+                ball.style.height = `${pos.h}px`;
+            },80)
             render(tab.dataset.filter);
         }
     })
     render('all');
+
+    // 窗口/标签栏滚动防抖，滚动结束重新校准小球，修复快速滚动空白错乱
+    function reCalibrateBall(){
+        const activeTab = document.querySelector('.tab-active');
+        if(activeTab) initBall(activeTab);
+    }
+
     // 窗口缩放重定位小球
-    window.addEventListener('resize',()=>initBall(document.querySelector('.tab-active')))
+    window.addEventListener('resize',()=>{
+        clearTimeout(scrollDebounceTimer);
+        scrollDebounceTimer = setTimeout(reCalibrateBall,100);
+    })
+
+    // 页面主体滚动防抖，高速滚动后修复渲染错位空白
+    window.addEventListener('scroll',()=>{
+        clearTimeout(scrollDebounceTimer);
+        scrollDebounceTimer = setTimeout(reCalibrateBall,120);
+    },{passive:true})
+
+    // 标签栏横向滚动，手机滑动标签栏修正小球
+    tabWrap.addEventListener('scroll',()=>{
+        clearTimeout(scrollDebounceTimer);
+        scrollDebounceTimer = setTimeout(reCalibrateBall,100);
+    },{passive:true})
 </script>
 </body>
 </html>
-
