@@ -1,41 +1,268 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>项目列表</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-body{padding:16px;background:#f5f7fa}
-.item{background:#fff;padding:14px;border-radius:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px #00000015}
-.info h3{font-size:16px;margin-bottom:4px}
-.info p{font-size:13px;color:#666}
-button{padding:8px 14px;background:#2563eb;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老子的世界</title>
+    <script src="./list.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            /* 全局主题色唯一修改入口，修改此处#7B61FB即可全站换色 */
+            --main: #7B61FB;
+            --bg-dark: #07081a;
+        }
+        body {
+            min-height: 100vh;
+            font-family: system-ui, sans-serif;
+            background: radial-gradient(circle at 20% 15%, color-mix(in srgb, var(--main) 40%, transparent), transparent 30%),
+            radial-gradient(circle at 80% 80%, color-mix(in srgb, var(--main) 30%, transparent), transparent 35%),
+            linear-gradient(160deg, #050616, var(--bg-dark));
+            color: #fff;
+            padding: 2rem 1rem;
+        }
+        .page-wrap {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        /* PC侧边纵向标签栏 */
+        .tab-sidebar {
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+            padding: 1.2rem;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid color-mix(in srgb, var(--main) 25%, transparent);
+            backdrop-filter: blur(25px) saturate(160%);
+            -webkit-backdrop-filter: blur(25px) saturate(160%);
+        }
+        .tab-item {
+            position: relative;
+            padding: 11px 14px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            z-index: 2;
+            font-size: 14px;
+            transition: color 0.25s ease;
+            color: rgba(255,255,255,0.7);
+            overflow: hidden;
+        }
+        /* 切换动效圆点载体 */
+        .tab-ball {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--main);
+            filter: blur(1px);
+            pointer-events: none;
+            z-index: 1;
+            transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .tab-active {
+            color: #fff;
+        }
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: color-mix(in srgb, var(--main) 75%, #222);
+            border-radius:12px;
+            backdrop-filter: blur(25px);
+            z-index: -1;
+        }
+        .content-box h1 {
+            margin-bottom:24px;
+            color: var(--main);
+            font-size:32px;
+        }
+        /* 启动器卡片 强磨砂液态玻璃 */
+        .launch-card {
+            padding:20px;
+            border-radius:18px;
+            margin-bottom:16px;
+            background:rgba(255,255,255,0.04);
+            border:1px solid color-mix(in srgb,var(--main) 20%,transparent);
+            backdrop-filter: blur(25px) saturate(170%);
+            -webkit-backdrop-filter: blur(25px) saturate(170%);
+            transition:0.3s ease;
+        }
+        .launch-card:hover {
+            border-color: color-mix(in srgb,var(--main) 45%,transparent);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px color-mix(in srgb,var(--main) 20%,transparent);
+        }
+        .card-name {
+            font-size:20px;
+            font-weight:600;
+            margin-bottom:8px;
+        }
+        .card-desc {
+            color:rgba(255,255,255,0.62);
+            font-size:14px;
+            line-height:1.6;
+            margin-bottom:12px;
+        }
+        .card-footer {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+        .tag {
+            padding:5px 12px;
+            border-radius:30px;
+            font-size:13px;
+            border:1px solid color-mix(in srgb,var(--main) 35%,transparent);
+            background:rgba(123,97,251,0.12);
+            backdrop-filter: blur(20px);
+        }
+        .visit-btn {
+            padding:7px 16px;
+            border-radius:30px;
+            background:var(--main);
+            color:#fff;
+            text-decoration:none;
+            font-size:14px;
+            transition:0.2s;
+        }
+        .visit-btn:hover {
+            opacity:0.85;
+            transform:scale(1.04);
+        }
+        .empty-tip {
+            text-align:center;
+            padding:60px 0;
+            color:rgba(255,255,255,0.45);
+        }
+        /* 移动端适配：页面布局重构，标签顶部横向排布 */
+        @media (max-width:768px) {
+            .page-wrap {
+                grid-template-columns: 1fr;
+            }
+            .tab-sidebar {
+                position:static;
+                display:flex;
+                gap:6px;
+                overflow-x:auto;
+                padding:10px;
+                margin-bottom:20px;
+                scrollbar-width:none;
+            }
+            .tab-sidebar::-webkit-scrollbar {
+                display:none;
+            }
+            .tab-item {
+                white-space:nowrap;
+                margin:0;
+                flex-shrink:0;
+                padding:9px 12px;
+            }
+            body {
+                padding:1rem 0.6rem;
+            }
+            .content-box h1 {
+                font-size:26px;
+                text-align:center;
+            }
+        }
+    </style>
 </head>
 <body>
-<div id="container"></div>
-
-<script src="./list.js"></script>
-<script>
-const container=document.getElementById("container");
-listData.forEach(item=>{
-  const div=document.createElement("div");
-  div.className="item";
-  div.innerHTML=`
-    <div class="info">
-      <h3>${item.name}</h3>
-      <p>${item.desc}</p>
+<div class="page-wrap">
+    <div class="tab-sidebar" id="tabWrap">
+        <div class="tab-item tab-active" data-filter="all">全部</div>
+        <div class="tab-item" data-filter="pc">PC</div>
+        <div class="tab-item" data-filter="mobile">Mobile</div>
+        <div class="tab-item" data-filter="hasUrl">有官网</div>
+        <div class="tab-item" data-filter="noUrl">无官网</div>
+        <div class="tab-ball" id="aniBall"></div>
     </div>
-  `;
-  const btn=document.createElement("button");
-  btn.textContent="前往";
-  btn.onclick=()=>{
-    window.open(item.goUrl,"_blank");
-  }
-  div.appendChild(btn);
-  container.appendChild(div);
-})
+    <div class="content-box">
+        <h1>老子的世界</h1>
+        <div id="cardList"></div>
+    </div>
+</div>
+
+<script>
+    const listDom = document.getElementById('cardList');
+    const tabs = document.querySelectorAll('.tab-item');
+    const ball = document.getElementById('aniBall');
+    let prevTab = tabs[0];
+
+    // 初始化激活小球位置
+    function initBall(el) {
+        const rect = el.getBoundingClientRect();
+        const parentRect = el.parentElement.getBoundingClientRect();
+        ball.style.width = `${rect.width}px`;
+        ball.style.height = `${rect.height}px`;
+        ball.style.left = `${rect.left - parentRect.left}px`;
+        ball.style.top = `${rect.top - parentRect.top}px`;
+    }
+    initBall(prevTab);
+
+    // 筛选渲染卡片
+    function render(filter) {
+        listDom.innerHTML = '';
+        let arr = [];
+        switch(filter) {
+            case 'all': arr = listData; break;
+            case 'pc': arr = listData.filter(i=>i.type==='pc'); break;
+            case 'mobile': arr = listData.filter(i=>i.type==='mobile'); break;
+            case 'hasUrl': arr = listData.filter(i=>!!i.goUrl); break;
+            case 'noUrl': arr = listData.filter(i=>!i.goUrl); break;
+        }
+        if(!arr.length) {
+            listDom.innerHTML = `<div class="empty-tip">暂无对应分类启动器</div>`;
+            return;
+        }
+        arr.forEach(item=>{
+            let btn = item.goUrl ? `<a class="visit-btn" target="_blank" href="${item.goUrl}">前往下载</a>` : '<span style="color:rgba(255,255,255,0.35)">未提供链接</span>';
+            listDom.innerHTML += `
+                <div class="launch-card">
+                    <div class="card-name">${item.name}</div>
+                    <div class="card-desc">${item.desc}</div>
+                    <div class="card-footer">
+                        <span class="tag">${item.type.toUpperCase()}</span>
+                        ${btn}
+                    </div>
+                </div>
+            `
+        })
+    }
+
+    // tab点击切换+小球收缩位移舒展动效
+    tabs.forEach(tab=>{
+        tab.onclick = ()=>{
+            tabs.forEach(t=>t.classList.remove('tab-active'));
+            tab.classList.add('tab-active');
+            const currRect = tab.getBoundingClientRect();
+            const parent = tab.parentElement.getBoundingClientRect();
+            // 第一步：当前激活标签收缩为圆点
+            ball.style.width = '12px';
+            ball.style.height = '12px';
+            ball.style.left = `${currRect.left-parent.left + currRect.width/2 -6}px`;
+            ball.style.top = `${currRect.top-parent.top + currRect.height/2 -6}px`;
+
+            setTimeout(()=>{
+                // 第二步：小球位移到新标签位置，舒展填满
+                ball.style.left = `${currRect.left-parent.left}px`;
+                ball.style.top = `${currRect.top-parent.top}px`;
+                ball.style.width = `${currRect.width}px`;
+                ball.style.height = `${currRect.height}px`;
+            },220)
+            render(tab.dataset.filter);
+        }
+    })
+    render('all');
+    // 窗口缩放重定位小球
+    window.addEventListener('resize',()=>initBall(document.querySelector('.tab-active')))
 </script>
 </body>
 </html>
